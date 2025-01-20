@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<head>
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<title>Explora AR tour</title>
+	<meta charset="UTF-8">
+	<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+	<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+	<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+	<!-- include three.js library -->
+	<script src="{{ url_for('static', filename='ar/three.js') }}"> </script>
+	<script src="{{ url_for('static', filename='ar/ar-threex.js') }}"> </script>
+	<script src="{{ url_for('static', filename='ar/GLTFLoader.js') }}"> </script>
+	
+	<script src="{{ url_for('static', filename='html2canvas_mod.js') }}"> </script>
+	
+	<script src="{{ url_for('static', filename='THREE_utils.js') }} "></script>
+
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="{{ url_for('static', filename='scene.css') }}">
+
+</head>
+
+<body style='margin : 0px; overflow: hidden;'>
+
+
+<div id="overlay" class="infohidden">
+	<div id="info" class="">
+		<div class="infohidden">
+			<div class="text_container"></div>
+		<img src="{{ url_for('static', filename='close.svg') }}" alt="close btn" class="close_btn">
+		</div>
+	</div>
+	<div id="buttons">
+		<div>
+			<div class="photo_btn"><img src="{{ url_for('static', filename='camera.svg') }}" alt=""></div>
+			<div class="info_btn infohidden"><img src="{{ url_for('static', filename='info.svg') }}" alt=""></div>
+		</div>
+	</div>
+</div>
+
+<div id="loading" class="wait-camera">
+	<!-- <h1>Explora AR</h1> -->
+	<img id="splash_logo" src="{{ url_for('static', filename='explora_logo.png') }}" alt="explora logo">
+	<div class="loading_content">
+		<div id="load_bar"><div></div></div>
+		<p>Loading: <span id="load_resource">(Waiting for camera to start)</span></p>
+		<div class="errors">
+			<p><strong>Error loading resources:</strong></p>
+		</div>
+	</div>
+
+</div>
+
+<div id="container">
+	<img id="header" src="{{ url_for('static', filename='explora_logo.png') }}" alt="explora logo">
+</div>
+
+
+{% if request.args.get("stats", "False").lower() == "true" %}
+<script type="module">
+	import Stats from "{{ url_for('static', filename='ar/js/stats.module.js') }}";
+	THREE.stats = new Stats();
+	document.body.appendChild(THREE.stats.dom)
+</script>
+{% endif %}
+
+<script>
+	
+	document.explora_ar_context = {
+		objects : [],
+		form_items : {},
+		cameraParametersUrl : "{{ url_for('static', filename='ar/data/camera_para.dat') }}",
+		debug : false
+	};
+
+	// {% if request.args.get("debug", "False").lower() == "true" %}  ------ (don't remove this line)
+	document.explora_ar_context.debug = true;
+	//{% endif %} ------ (don't remove this line)
+	//{% for row in data %} ------ (don't remove this line)
+
+	_item = {
+		"slot": "{{ row['id'] }}",
+		"modelPath" : "{{ row['model'] }}",
+		"default": {{ "true" if row['default'] else "false" }},
+		"scale" : new THREE.Vector3({{ row['scale'] }},{{ row['scale'] }},{{ row['scale'] }}),
+		"position" : new THREE.Vector3({{ row['pos_x'] }},{{ row['pos_y'] }},{{ row['pos_z'] }}),
+		"barcodeValue" : {{ row['marker'] }},
+		"markerImage": "{{ row['markerImage'] }}",
+		"info": "{{row['info']}}"
+		}
+
+	document.explora_ar_context.form_items["object-form-{{ row['id']}}"] = _item;
+	document.explora_ar_context.objects.push( _item );
+	// {% endfor %} ------ (don't remove this line)
+
+</script>
+
+<script src="{{ url_for('static', filename='ar/scene.js') }} "></script>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{% extends 'dashboard/base.html' %}
+
+{% if g.user %}
+  {% block navigation %}
+  <!-- <nav id="navigation">
+    <a href="{{ url_for( 'content_manager.index') }}">Domande</a>
+    <a href="{{ url_for( 'users_analytics.index') }}">Utenti</a>
+  </nav> -->
+  {% endblock %}
+
+  {% block content %}
+  <p>Under construction: No content for now</p>
+  {% endblock %}
+{% endif %}

@@ -1,0 +1,4 @@
+include ar_server/schema.sql
+graft ar_server/static
+graft ar_server/templates
+global-exclude *.pyc

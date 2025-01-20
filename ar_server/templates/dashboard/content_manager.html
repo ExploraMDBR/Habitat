@@ -1,0 +1,381 @@
+{% extends 'dashboard/index.html' %}
+
+{% if g.user %}
+
+	{% block navigation %}
+	{% endblock %}
+
+    {% block content %}
+		
+	    {% if status == "error" %}
+	    		<h2>Error</h2>
+	    		<p><strong>Could not fetch data:</strong> {{reason}}</p>
+	    		<p>Please contact the administrator.</p>
+	    		<p>Error code: {{error_id}}</p>
+	    {% else %}
+	    	<section>  		
+				{% for item in data %}
+				{% set is_selected = "selected" if show_slot == item['id'] else "" %}
+				<div class="object-form {{is_selected}}" id="object-form-{{ item['id']}}">
+					<h2>AR Slot<strong> #{{ item['id']}}</strong></h2>
+					{% set marker_url = item['markerImage'] %}				
+					<a class="marker-image-link" target="_blank" href="{{marker_url}}">
+						<span>Barcode Marker: {{item['marker']}}</span><img src="{{marker_url}}" alt="marker_thumb">
+					</a>
+					<div class="object-header">
+						<img class="marker-image" src="{{marker_url}}" alt="" >
+						<div  class="object-otf">
+							<!-- <p>Barcode #{{item['marker']}}</p>
+							<p>Model: {{item['model']}}</p> -->
+						</div>
+						<div class="controls_3D">
+							<h3>Model 3D controls</h3>
+							{% set s_label = "scale-{}".format(item["id"]) %}
+							{% set px_label = "px-{}".format(item["id"]) %}
+							{% set py_label = "py-{}".format(item["id"]) %}
+							{% set pz_label = "pz-{}".format(item["id"]) %}
+							<label for="{{s_label}}">Scale:</label>
+							<input type="number" id="{{s_label}}" name="{{s_label}}" autocomplete="off" min="0.001" max="100" step="0.01" value="{{item['scale']}}"/>
+							<label for="{{px_label}}">Position X:</label>
+							<input type="number" id="{{px_label}}" name="{{px_label}}" autocomplete="off" min="-10" max="10" step="0.1" value="{{item['pos_x']}}"/>
+							<label for="{{py_label}}">Position Y:</label>
+							<input type="number" id="{{py_label}}" name="{{py_label}}" autocomplete="off" min="-10" max="10" step="0.1" value="{{item['pos_y']}}"/>
+							<label for="{{pz_label}}">Position Z:</label>
+							<input type="number" id="{{pz_label}}" name="{{pz_label}}" autocomplete="off" min="-10" max="10" step="0.1" value="{{item['pos_z']}}"/>
+							<p><strong>Current model:</strong></p>
+							<a class="current_model" href="{{item['model']}}" target="_blank">{{item['model']}}</a>
+
+						</div>
+					</div>
+
+					<div class="form-container hidden">
+						<h3>Content</h3>
+						<img src="{{ url_for('static', filename='close.svg') }}" alt="close btn" class="close_btn">
+						<div class="div-object">
+							<form class="submit-object" action="/content/{{item['id']}}" data-slot="{{item['id']}}" autocomplete="off" enctype="multipart/form-data">
+								<input type="hidden" id="hidden-{{s_label}}"  name="scale"    value="{{item['scale']}}"/>
+								<input type="hidden" id="hidden-{{px_label}}" name="px"  value="{{item['pos_x']}}"/>
+								<input type="hidden" id="hidden-{{py_label}}" name="py"  value="{{item['pos_y']}}"/>
+								<input type="hidden" id="hidden-{{pz_label}}" name="pz"  value="{{item['pos_z']}}"/>
+								<div class="object-ar-content">
+									<div>
+										<p class="objectetailsp" style="margin-top: 0">
+											Upload Model: 
+											<input id="fileinput" style="margin-left:4px; margin-bottom: 0px" type="file" name="file" >
+										</p>
+										<p><small>Supported files: .glb or zip containing [.glb, .gltf, .bin, .jpg, .png]</small></p>
+									</div>
+									<div>
+										<label for="marker-barcode">Barcode marker:</label>
+										<select name="marker-barcode" id="select-marker-slot-{{item['id']}}">
+											<option value="{{item['marker']}}">{{item['marker']}}</option>
+											{% for free_marker in free_markers %}
+											<option value="{{free_marker}}">{{free_marker}}</option>
+											{% endfor %}
+										</select>
+										<p><small>Supported: barcode 3x3 matrix, from 0 to {{marker_num - 1}}</small></p>
+										
+									</div>
+								</div>		
+
+								<p style="margin-top: 10px" class="objectetailsp">Info:</p>
+								<div class="info-container" id="info-container-{{item['id']}}"></div>
+								
+								<div style="margin-top: 14px;  margin-left: 4px"><input type="submit" value="Salva" class="cardbutton"></div>
+								<p class="objectetailsp" style="font-size: small; font-style: oblique;">Ultima modifica: {{item["modified"]}}</p>
+
+							</form>
+						</div>
+						<div class="post-info">
+							{% if show_slot == item['id'] %}
+								{{message|safe}}
+							{% endif %}
+							</div>
+						<div class="post-error"></div>
+					</div>
+				</div> <!-- end .object-form -->
+				{% endfor %}
+	    	</section>
+		    	
+	    {% endif %}
+
+		<script>
+
+			document.explora_ar_context = {
+					objects : [],
+					form_items : {},
+					cameraParametersUrl : "{{ url_for('static', filename='ar/data/camera_para.dat') }}",
+					// defaultModel : "flamingo_e.glb",
+					freeMarkers : {{free_markers}}
+				};
+
+			let _item;
+			
+			// ------ JINJA FOR LOOP: {% for row in data %} ------ (don't remove this line)			
+			_item = {
+				"slot": "{{ row['id'] }}",
+				"modelPath" : "{{ row['model'] }}",
+				"default": {{ "true" if row['default'] else "false" }},
+				"scale" : new THREE.Vector3({{ row['scale'] }},{{ row['scale'] }},{{ row['scale'] }}),
+				"position" : new THREE.Vector3({{ row['pos_x'] }},{{ row['pos_y'] }},{{ row['pos_z'] }}),
+				"barcodeValue" : {{ row['marker'] }},
+				"markerImage": "{{ row['markerImage'] }}",
+				"info": "{{row['info']}}"
+				}
+			document.explora_ar_context.form_items["object-form-{{ row['id']}}"] = _item;
+			document.explora_ar_context.objects.push( _item );
+			// ------ END JINJA FOR LOOP : {% endfor %} ------ (don't remove this linne)
+		
+		</script>
+
+		<script>
+
+			let infoquills = {}
+			
+			document.addEventListener("DOMContentLoaded", function(event) {
+
+				// ######### Handle marker form visibility
+				document.querySelectorAll(".object-form").forEach((e,i) =>{
+					let item = document.explora_ar_context.form_items[e.id]
+					let formContainer = e.querySelector(".form-container");
+					let markerLink = e.querySelector(".marker-image-link");
+
+					if (e.classList.contains("selected")){
+						e.scrollIntoView({ behavior: "smooth" });
+						init3DViewer(e.querySelector(".object-otf"), item);
+					}
+
+					e.onclick = (event)=>{
+						if (e.classList.contains('selected')) return;
+						e.classList.add('selected');
+						
+						remove3DViewer();
+						let makerImg = e.querySelector(".marker-image");
+						let gltfPath = document.explora_ar_context.form_items[e.id].modelPath;
+						init3DViewer(e.querySelector(".object-otf"), item);
+
+						setTimeout(() => {
+							e.scrollIntoView({ behavior: "smooth" });
+							}, 250);
+						document.querySelectorAll(".object-form").forEach((other,i) =>{
+								if (other == e) return;
+								other.classList.remove('selected');
+							});
+					};
+
+					e.querySelectorAll(".controls_3D input").forEach((input) =>{
+						let hidden = e.querySelector(`#hidden-${input.id}`);
+						input.onchange = (event) =>{
+							
+							let val = parseFloat(input.value);
+
+							if (input.id.startsWith("scale")) item.scale.copy(new THREE.Vector3(val,val,val));
+							if (input.id.startsWith("px")) item.position.x = val;
+							if (input.id.startsWith("py")) item.position.y = val;
+							if (input.id.startsWith("pz")) item.position.z = val;
+							
+							hidden.value = input.value;
+
+							console.log(item.position, item.scale);
+							set_loc_scale(item.position.x, item.position.y, item.position.z, item.scale.x);
+						}
+					});
+
+					e.querySelectorAll(".close_btn").forEach((btn) =>{
+						btn.onclick = (event) =>{
+							event.stopPropagation();
+							e.classList.remove('selected');
+							remove3DViewer();
+
+							document.querySelectorAll(".object-form").forEach((other,i) =>{
+								if (other == e) return;
+								other.classList.remove('selected');
+							});
+						}
+					});
+				
+					// ######### Set Quill WYSIWYG editor for textblocks
+					
+					let info_container = e.querySelector(".info-container")
+					let quill = new Quill("#" + info_container.id, {
+						modules: {
+							toolbar: [
+							[{ header: [1, 2, false] }],
+							['bold', 'italic', 'underline', 'link'],
+							]
+						},
+						placeholder: 'Info',
+						theme: 'snow'  // or 'bubble'
+					});
+
+
+					quill.root.innerHTML = htmlDecode(document.explora_ar_context.form_items[e.id].info);
+					infoquills[e.id] = quill;
+
+					// ######### On answer submit
+					let object_form = e.querySelector(".submit-object")
+
+					object_form.addEventListener("submit", handleFormSubmit);
+					
+				}); // end document.querySelectorAll(".object-form").forEach
+		
+			}); //end document.addEventListener("DOMContentLoaded",
+			
+
+
+			function showErrorMessage(msg, slot){
+				let d = document.querySelector(`#object-form-${slot} .post-error`);
+				let p = document.createElement('p');
+				p.innerHTML = msg;
+				d.append(p);
+			}
+
+			function showInfoMessage(msg, slot){
+				let d = document.querySelector(`#object-form-${slot} .post-info`);
+				let p = document.createElement('p');
+				p.innerHTML = msg;
+				d.append(p);
+			}
+
+			function showErrorBoldMessage(bold, msg, slot){
+				showErrorMessage(`<strong>${bold}:</strong> ${msg}`, slot);
+			}
+
+			function showInfoBoldMessage(bold, msg, slot){
+				showInfoMessage(`<strong>${bold}:</strong> ${msg}`, slot);
+			}
+			
+			function clearMessages(slot){
+				document.querySelector(`#object-form-${slot} .post-info`).innerHTML = "";
+				document.querySelector(`#object-form-${slot} .post-error`).innerHTML = "";
+			}
+
+			async function handleFormSubmit(event) {
+
+				event.preventDefault();
+
+				const form = event.currentTarget;
+				const url = form.action;
+				const slot = form.dataset.slot;
+
+				try {
+
+					const formData = new FormData(form);
+					let modelURL;
+					if (form.querySelector('#fileinput').files.length > 0) {
+						clearMessages(slot);
+						
+						let f = form.querySelector('#fileinput').files[0];
+						let response = await postFile(f, slot)
+
+						if (response["status"] == 'ok'){
+							showInfoBoldMessage("Upload OK, detected filetype", response.filetype,slot);
+							showInfoBoldMessage("GLTF file", response.gltf_file,slot);
+							response.textures.forEach((e) => {
+								showInfoBoldMessage("Texture file", e, slot);
+							});
+							modelURL = `${response['base_url']}/${response['gltf_file']}`;
+
+						} else { // Upload error
+							if (response.status){
+								showErrorBoldMessage("Wrong file", ` [${f.name}] ${response.status}`, slot);
+								showErrorBoldMessage("Reason", response.reason, slot);
+								return;
+							}		
+						}
+					
+					} else {
+						clearMessages(slot);
+						showInfoMessage("(No file uploaded)", slot);
+						modelURL = "";
+					}
+
+					let containterId = `object-form-${form.dataset.slot}`
+					console.log(containterId, infoquills);
+
+					formData.delete("file");
+					
+					// form.exploraData.item["modelPath"] = modelURL;
+					formData.append("model", modelURL);
+					
+					// form.exploraData.item.info = infoquills[containterId].root.innerHTML;
+					formData.append("info", infoquills[containterId].root.innerHTML);
+					formData.append("id", form.dataset.slot);
+
+					// form.exploraData.item.markerImage = 
+					// form.exploraData.item.barcodeValue = parseInt(formData["marker-barcode"]);
+
+					console.log("POST Formdata:", formData)
+					const responseData = await postFormDataAsJson({ url, formData });
+					console.log("POST response:", responseData);
+			
+				} catch (error) {
+					showErrorMessage(error, slot);
+					console.error("POST error",error);
+				}
+
+				showInfoMessage("Slot update OK!", slot);
+				let msg = encodeURIComponent(document.querySelector(`#object-form-${slot} .post-info`).innerHTML);
+				console.log(msg)
+				setTimeout(() => {
+					window.location.href = window.location.pathname + `?show_slot=${slot}&msg=${msg}`
+							}, 500);
+		
+			}
+
+
+			async function postFile(f, slot) {
+				const url = `/content/file/${slot}`;
+				const formData = new FormData();
+				const fetchOptions = {
+					method: "POST",
+					body: formData,
+				};
+				formData.append("file",f)
+				try {
+				
+					const response = await fetch(url, fetchOptions);
+					if (response.status == 200 || response.status == 415 ) {
+						return response.json();
+					} else {
+						let e = await response.json();
+						throw Error(`${e.reason} | error ID: ${e.error_id}`);
+					}
+
+				} catch (error) {
+					showErrorMessage(`Error uploading file [${f.name}]:` + error, slot);
+					console.error(error);
+					return false;
+				}
+			}
+
+			async function postFormDataAsJson({ url, formData }) {
+
+				const plainFormData = Object.fromEntries(formData.entries());
+				const formDataJsonString = JSON.stringify(plainFormData);
+				console.log(formDataJsonString)
+				const fetchOptions = {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						"Accept": "application/json"
+					},
+					body: formDataJsonString,
+				};
+			
+				const response = await fetch(url, fetchOptions);
+			
+				if (!response.ok) {
+					const errorMessage = await response.text();
+					throw new Error(errorMessage);
+				}
+				
+				return response.json();
+			}
+
+
+		</script>
+    {% endblock %}
+
+	
+{% endif %}

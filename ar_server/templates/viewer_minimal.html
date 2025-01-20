@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<!-- three.js library -->
+<script src="{{ url_for('static', filename='ar/three.js') }}"> </script>
+<script src="{{ url_for('static', filename='ar/ar-threex.js') }}"> </script>
+<script src="{{ url_for('static', filename='ar/GLTFLoader.js') }}"> </script>
+
+<body style='font-family: Monospace;'>
+	<script>
+		console.log("3D viewer init", THREE);
+
+        let renderer, scene, camera, mixer, markerRoot;
+        let animationLoop;
+        let container;
+
+        function init3DViewer(domElem, gltfPath, markerPath){
+            if (renderer) return;
+            container = domElem;
+            console.log("INIT 3D viewer in:", domElem);
+            renderer = new THREE.WebGLRenderer({
+                antialias : true,
+                alpha: false
+            });
+
+            renderer.setClearColor(new THREE.Color(0xcccccc), 1)
+            renderer.setSize( 640, 480 );
+            domElem.appendChild( renderer.domElement );
+
+            scene = new THREE.Scene();
+
+            let ambientLight = new THREE.AmbientLight( 0xffffff, 1.0 );
+            scene.add( ambientLight );
+                        
+            camera = new THREE.PerspectiveCamera( 50, 640/480, 0.1, 100 );
+            camera.position.x = 0.2;
+            camera.position.y = 1.5;
+            camera.position.z = 2.5;
+
+            camera.lookAt(0,0.5,-1);
+            scene.add(camera);
+
+
+            clock = new THREE.Clock();
+            deltaTime = 0;
+            totalTime = 0;
+
+            markerRoot = new THREE.Group();
+
+            const textureLoader = new THREE.TextureLoader();
+            const texture1 = textureLoader.load( markerPath );
+            let geometry1 = new THREE.PlaneGeometry(1,1, 4,4);
+            let material1 = new THREE.MeshBasicMaterial( { color: 'white    ', map: texture1 } );
+            let mesh = new THREE.Mesh( geometry1, material1 );
+            mesh.rotation.x = -Math.PI/2;
+            markerRoot.add(mesh)
+            scene.add(markerRoot)
+
+            const gltfLoader = new THREE.GLTFLoader();
+            gltfLoader.load(gltfPath, (gltf) => {
+                const root = gltf.scene;
+                markerRoot.add(root);
+                root.scale.copy(new THREE.Vector3(0.01,0.01,0.01))
+                root.position.y = 1
+                if (gltf.animations){
+                    mixer = new THREE.AnimationMixer( root );
+                    mixer.clipAction( gltf.animations[ 0 ] ).play();
+                }
+            });
+
+            let t = 0
+            requestAnimationFrame(function animate(nowMsec) {
+                animationLoop =  requestAnimationFrame(animate);
+                renderer.render(scene, camera);
+                let deltaTime = clock.getDelta();
+                t += deltaTime
+                markerRoot.rotation.y = t/5;
+                if (mixer) mixer.update( deltaTime );
+            })
+
+            console.log(animationLoop);
+
+        }
+
+        function remove3DViewer(){
+            if (!renderer) return;
+            cancelAnimationFrame(animationLoop);
+            container.remove(renderer.domElement)
+            renderer = undefined;
+        }
+
+        init3DViewer(document.body, "/static/ar/models/flamingo.glb", '/static/ar/barcodes/05.png');
+        
+      
+
+	</script>
+</body>

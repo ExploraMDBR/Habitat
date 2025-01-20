@@ -1,0 +1,220 @@
+html {
+    font-family: "IBM Plex Sans", sans-serif;
+   
+}
+
+#container{
+    width: 100%;
+    height: 100%;
+}
+
+#loading {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background-color:  #d9d9d9;
+    color: rgb(0, 0, 0);
+    text-align: center;
+    overflow: hidden;
+    z-index: 300;
+    transition: height 1.5s 1s, background-color 1s;
+    display: flex;
+      flex-direction: column;
+}
+
+#loading #splash_logo{
+    width: 50%;
+    margin: auto;
+}
+
+#loading.load_complete{
+    height: 0;
+}
+
+#loading .loading_content{
+    width: 60%;
+    margin: 0 auto;
+    /* margin-top: 200px; */
+}
+
+#load_bar{
+    height: 1em;
+    width: 100%;
+    background-color: #524e4eb0;
+    transition: background-color 0.2s;
+    border-radius: 1.5em;
+}
+
+#load_bar>div{
+    background-color: #DC5F95;
+    height: 100%;
+    width: 0;
+    transition: width 0.3s;
+    border-radius: 1.5em;
+}
+
+#loading .errors{
+    display: none;
+    width: 80%;
+    margin: auto;
+    background-color: #a55f9c;
+    border-radius: 4px;
+}
+
+#loading.wait-camera #load_bar{
+    background-color: #ffffff35;
+    /* color: #ffffff;  */
+}
+
+#load_bar>div{
+    width: 0;
+    transition: width 0.1s;
+}  
+
+#overlay{
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    /* background-color: #57cf1259; */
+    z-index: 100;
+    bottom:0;
+    transition: bottom 1s 1s;
+}
+
+#overlay.infohidden{
+    bottom: -100%;
+}
+
+#overlay #info{
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+
+#overlay #info.show{
+    bottom: 0;
+}
+
+#overlay #info>div{
+background-color: #ffff6d;  
+  width: 80%;
+  margin: 20px auto;
+  position: relative;
+  bottom: 0;
+  min-height: 200px;
+  max-height: 600px;
+  overflow-y: scroll;
+  padding: 20px 40px;
+  border-radius: 10px;
+  border: 1px solid black;
+  box-shadow: 2px 4px 5px #00000078;
+  transition: bottom 1s;
+  z-index: 10;
+}
+
+#overlay #info>div.infohidden {
+    bottom: -500px;
+}
+
+
+img.close_btn{
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	margin: 10px;
+	width: 30px;
+	cursor: pointer;
+}
+
+#overlay #buttons>div{
+    position: absolute;
+    bottom: 60px;
+    right: 60px;
+    /* background-color: #5f5fa536; */
+    transition: bottom 1s;
+}
+
+#overlay #buttons>div.raise{
+    bottom: 300px;
+}
+
+#overlay #buttons .info_btn,
+#overlay #buttons .photo_btn{
+    background-color: #ffff6d;  
+    width: 100px;
+    height: 100px;
+    cursor: pointer;
+    border-radius: 60%;
+    border: 1px solid black;
+    box-shadow: 2px 4px 5px #00000078;
+    position: relative;
+    bottom:0;
+    transition: bottom 1s;
+}
+
+#overlay #buttons .photo_btn{
+    background-color: #a2ff6d;  
+    margin-bottom: 40px;
+}
+
+#overlay #buttons .info_btn.infohidden {
+    bottom: -400px
+}
+
+#overlay #buttons img{
+    width: 70%;
+    padding: 15%;
+}
+
+
+@media only screen and (max-width: 600px) {
+    #overlay #info>div{
+        min-height: 150px;
+        max-height: 500px;
+    }
+        
+    #overlay #info>div.infohidden {
+        bottom: -400px;
+    }
+        
+                
+    #overlay #buttons>div{
+        bottom: 30px;
+        right: 30px;
+    }
+        
+    #overlay #buttons>div.raise{
+        bottom: 200px;
+    }
+        
+    #overlay #buttons .info_btn,
+    #overlay #buttons .photo_btn{
+        width: 50px;
+        height: 50px;
+    }
+    
+    #overlay #buttons .photo_btn{
+        margin-bottom: 30px;
+    }
+    
+    #overlay #buttons .info_btn.infohidden {
+        bottom: -300px
+    }
+
+
+}
+
+#photo_div{
+    width: 60%;     
+  height: 60%;
+  z-index: 200;
+  position: absolute;
+}
+
+
+#container img#header{
+    position: fixed;
+    max-width: 30%;
+    margin: 4%;
+}
